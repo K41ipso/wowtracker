@@ -1,7 +1,10 @@
 import javax.swing.*;
+import javax.swing.plaf.ColorUIResource;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -492,7 +495,7 @@ class CreateTaskDialog extends JDialog {
         add(formPanel, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel();
-        JButton okButton = new JButton("Создать");
+        JButton okButton = createStyledButton("Создать", new Color(76, 175, 80));
         okButton.setBackground(new Color(76, 175, 80));
         okButton.setForeground(Color.WHITE);
         okButton.addActionListener(e -> {
@@ -500,7 +503,7 @@ class CreateTaskDialog extends JDialog {
             dispose();
         });
 
-        JButton cancelButton = new JButton("Отмена");
+        JButton cancelButton = createStyledButton("Отмена", new Color(244, 67, 54));
         cancelButton.setBackground(new Color(244, 67, 54));
         cancelButton.setForeground(Color.WHITE);
         cancelButton.addActionListener(e -> dispose());
@@ -510,6 +513,48 @@ class CreateTaskDialog extends JDialog {
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
+    // Обновленный вариант с анимацией
+    private JButton createStyledButton(String text, Color color) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                if (getModel().isPressed()) {
+                    g.setColor(color.darker().darker());
+                } else if (getModel().isRollover()) {
+                    g.setColor(color.darker());
+                } else {
+                    g.setColor(color);
+                }
+                g.fillRect(0, 0, getWidth(), getHeight());
+                super.paintComponent(g);
+            }
+
+            @Override
+            public void updateUI() {
+                // Переопределяем, чтобы кнопка не теряла стиль при обновлении UI
+                super.updateUI();
+                setContentAreaFilled(false);
+                setOpaque(true);
+                setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(color.darker(), 1),
+                        BorderFactory.createEmptyBorder(10, 10, 10, 10)
+                ));
+            }
+        };
+
+        // Изменено с Color.WHITE на Color.BLACK
+        button.setForeground(Color.BLACK);
+        button.setFont(new Font("Arial", Font.BOLD, 12));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setContentAreaFilled(false);
+        button.setOpaque(true);
+        button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(color.darker(), 1),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+
+        return button;
+    }
     public String getTitle() {
         return titleField.getText();
     }
@@ -645,6 +690,15 @@ public class MainApp extends JFrame {
         add(topPanel, BorderLayout.NORTH);
 
         // Панель с кнопками
+        // Добавить в конструктор MainApp перед созданием кнопок:
+        try {
+            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+            JFrame.setDefaultLookAndFeelDecorated(true);
+            UIManager.put("Button.background", new ColorUIResource(238, 238, 238));
+            UIManager.put("Button.focus", new ColorUIResource(new Color(0, 0, 0, 0)));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         JPanel buttonPanel = new JPanel(new GridLayout(1, 6, 10, 10));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         buttonPanel.setBackground(new Color(245, 245, 245));
@@ -839,21 +893,48 @@ public class MainApp extends JFrame {
     }
 
     private JButton createStyledButton(String text, Color color) {
-        JButton button = new JButton(text);
-        button.setBackground(color);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setFont(new Font("Arial", Font.BOLD, 12));
-        button.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        JButton button = new JButton(text) {
+            private Color bgColor = color;
 
-        // Эффект при наведении
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(color.darker());
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                if (getModel().isPressed()) {
+                    bgColor = color.darker().darker();
+                } else if (getModel().isRollover()) {
+                    bgColor = color.darker();
+                } else {
+                    bgColor = color;
+                }
+
+                g2.setColor(bgColor);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+
+                g2.setColor(new Color(255, 255, 255, 100));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight()/2, 10, 10);
+
+                super.paintComponent(g);
+                g2.dispose();
             }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(color);
+        };
+        button.setForeground(Color.BLACK);
+        button.setFont(new Font("Arial", Font.BOLD, 12));
+        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setContentAreaFilled(false);
+        button.setOpaque(false);
+
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.repaint();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.repaint();
             }
         });
 
