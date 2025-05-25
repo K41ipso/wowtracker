@@ -1,5 +1,6 @@
 package com.wowtracker;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
 import java.awt.*;
@@ -8,13 +9,18 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.io.*;
+import java.io.Serializable;
+
 
 // Модели данных
-class Task {
+class Task implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String id;
     private String title;
     private String description;
@@ -75,7 +81,8 @@ class Task {
     }
 }
 
-class Achievement {
+class Achievement implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String id;
     private String title;
     private String description;
@@ -129,7 +136,8 @@ class Achievement {
     }
 }
 
-class User {
+class User implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String id;
     private String name;
     private int currencyBalance;
@@ -171,7 +179,8 @@ class User {
     }
 }
 
-class PersonalGoal {
+class PersonalGoal implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String id;
     private String title;
     private String description;
@@ -220,7 +229,8 @@ class PersonalGoal {
 }
 
 // Сервисы
-class TaskService {
+class TaskService implements Serializable {
+    private static final long serialVersionUID = 1L;
     private List<Task> tasks = new ArrayList<>();
 
     public void createTask(String title, String description, LocalDate dueDate, ImageIcon icon, int reward) {
@@ -243,7 +253,8 @@ class TaskService {
     }
 }
 
-class AchievementService {
+class AchievementService implements Serializable {
+    private static final long serialVersionUID = 1L;
     private List<Achievement> achievements = new ArrayList<>();
 
     public void addAchievement(Achievement achievement) {
@@ -273,7 +284,8 @@ class AchievementService {
     }
 }
 
-class GoalService {
+class GoalService implements Serializable {
+    private static final long serialVersionUID = 1L;
     private List<PersonalGoal> goals = new ArrayList<>();
 
     public void addGoal(PersonalGoal goal) {
@@ -658,38 +670,114 @@ public class MainApp extends JFrame {
     private JPanel achievementPanel;
     private JPanel goalPanel;
 
+    private static final String SAVE_FILE = "save.dat";
+    private Timer autoSaveTimer;
+
     public MainApp() {
+
+        // Попытка загрузить сохранение
+        if (new File(SAVE_FILE).exists()) {
+            try {
+                AppState loadedState = AppState.loadState(SAVE_FILE);
+                this.user = loadedState.getUser();
+                this.taskService = loadedState.getTaskService();
+                this.achievementService = loadedState.getAchievementService();
+                this.goalService = loadedState.getGoalService();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Файл сохранения повреждён или пустой. Будет создано новое.");
+
+                // Создаём дефолтные данные
+                this.user = new User(UUID.randomUUID().toString(), "Игрок", 100);
+                this.taskService = new TaskService();
+                this.achievementService = new AchievementService();
+                this.goalService = new GoalService();
+
+                // Добавляем ачивки
+                achievementService.addAchievement(questGenerator.generateWoWAchievement());
+                achievementService.addAchievement(questGenerator.generateWoWAchievement());
+
+                // Перезаписываем файл сохранения
+                try {
+                    new AppState(user, taskService, achievementService, goalService).saveState(SAVE_FILE);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(this, "Не удалось пересоздать файл сохранения.", "Ошибка", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        } else {
+            this.user = new User(UUID.randomUUID().toString(), "Игрок", 100);
+            achievementService.addAchievement(questGenerator.generateWoWAchievement());
+            achievementService.addAchievement(questGenerator.generateWoWAchievement());
+        }
+
+        // Настройка автосохранения
+        autoSaveTimer = new Timer(10_000, _ -> {
+            try {
+                new AppState(user, taskService, achievementService, goalService).saveState(SAVE_FILE);
+            } catch (Exception ex) {
+                System.err.println("Ошибка автосохранения");
+                //ex.printStackTrace(); // Это покажет точное место ошибки
+            }
+        });
+        autoSaveTimer.start();
+
         setTitle("WoW Task Manager");
         setSize(900, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         getContentPane().setBackground(new Color(245, 245, 245));
 
-        // Добавляем ачивки
-        achievementService.addAchievement(questGenerator.generateWoWAchievement());
-        achievementService.addAchievement(questGenerator.generateWoWAchievement());
-
         // Панель с балансом
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        topPanel.setBackground(new Color(70, 130, 180));
+        JPanel balancePanel = new JPanel(new BorderLayout());
+        balancePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        balancePanel.setBackground(new Color(70, 130, 180));
 
-        balanceLabel = new JLabel("Баланс: " + user.getCurrencyBalance() + " монет");
+        try {
+            // Загружаем иконку монеты
+            URL iconUrl = getClass().getClassLoader().getResource("token_icon.png");
+            if (iconUrl == null) {
+                System.err.println("Файл иконки не найден!");
+                return;
+            }
+
+            // Читаем изображение через ImageIO
+            BufferedImage originalImage = ImageIO.read(iconUrl);
+
+            // Создаём ImageIcon из BufferedImage
+            ImageIcon coinIcon = new ImageIcon(originalImage);
+
+            // Создаём уменьшенную версию иконки (40x40)
+            ImageIcon resizedCoinIcon = resizeIcon("token_icon.png", 40, 40);
+
+            // Добавляем уменьшенную иконку монеты
+            JLabel coinLabel = new JLabel(resizedCoinIcon);
+            balancePanel.add(coinLabel, BorderLayout.WEST);
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Не удалось загрузить иконку монеты.");
+        }
+
+        // Добавляем текст баланса
+        balanceLabel = new JLabel(" " + user.getCurrencyBalance());
         balanceLabel.setFont(new Font("Arial", Font.BOLD, 18));
         balanceLabel.setForeground(Color.WHITE);
-        topPanel.add(balanceLabel, BorderLayout.WEST);
+        balancePanel.add(balanceLabel, BorderLayout.CENTER);
 
+        add(balancePanel, BorderLayout.NORTH);
+
+        // Скрываем кнопку "+10 монет"
         JButton addCurrencyButton = new JButton("+10 монет");
         addCurrencyButton.setBackground(new Color(255, 193, 7));
         addCurrencyButton.setForeground(Color.BLACK);
         addCurrencyButton.setFocusPainted(false);
+        addCurrencyButton.setVisible(false); // Скрыта по умолчанию
         addCurrencyButton.addActionListener(e -> {
             user.setCurrencyBalance(user.getCurrencyBalance() + 10);
             updateBalance();
         });
-        topPanel.add(addCurrencyButton, BorderLayout.EAST);
+        balancePanel.add(addCurrencyButton, BorderLayout.EAST);
 
-        add(topPanel, BorderLayout.NORTH);
+        // Добавляем панель в верхнюю часть окна
+        add(balancePanel, BorderLayout.NORTH);
 
         // Панель с кнопками
         // Добавить в конструктор MainApp перед созданием кнопок:
@@ -894,57 +982,59 @@ public class MainApp extends JFrame {
         updateGoalPanel();
     }
 
-    private JButton createStyledButton(String text, Color color) {
-        JButton button = new JButton(text) {
-            private Color bgColor = color;
-
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                if (getModel().isPressed()) {
-                    bgColor = color.darker().darker();
-                } else if (getModel().isRollover()) {
-                    bgColor = color.darker();
-                } else {
-                    bgColor = color;
-                }
-
-                g2.setColor(bgColor);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
-
-                g2.setColor(new Color(255, 255, 255, 100));
-                g2.fillRoundRect(0, 0, getWidth(), getHeight()/2, 10, 10);
-
-                super.paintComponent(g);
-                g2.dispose();
+    private ImageIcon resizeIcon(String resourcePath, int width, int height) {
+        try {
+            // Получаем URL ресурса
+            URL imageUrl = getClass().getClassLoader().getResource(resourcePath);
+            if (imageUrl == null) {
+                System.err.println("Файл не найден: " + resourcePath);
+                return null;
             }
-        };
-        button.setForeground(Color.BLACK);
-        button.setFont(new Font("Arial", Font.BOLD, 12));
-        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setContentAreaFilled(false);
-        button.setOpaque(false);
 
+            // Читаем BufferedImage напрямую
+            BufferedImage originalImage = ImageIO.read(imageUrl);
+
+            // Создаём новое изображение с поддержкой прозрачности
+            BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+            // Масштабируем изображение
+            Graphics2D g2d = resizedImage.createGraphics();
+            g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g2d.drawImage(originalImage, 0, 0, width, height, null);
+            g2d.dispose();
+
+            return new ImageIcon(resizedImage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private JButton createStyledButton(String text, Color color) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Современный шрифт
+        button.setForeground(Color.WHITE); // Белый текст
+        button.setBackground(color); // Цвет кнопки
+        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20)); // Поля вокруг текста
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Курсор при наведении
+        button.setContentAreaFilled(true); // Заливка области кнопки
+        button.setOpaque(true); // Прозрачность
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                button.repaint();
+                button.setBackground(color.darker()); // Темнее при наведении
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                button.repaint();
+                button.setBackground(color); // Возвращаем исходный цвет
             }
         });
-
         return button;
     }
 
     private void updateBalance() {
-        balanceLabel.setText("Баланс: " + user.getCurrencyBalance() + " монет");
+        balanceLabel.setText(" " + user.getCurrencyBalance());
     }
 
     private void updateTaskPanel() {
@@ -995,6 +1085,12 @@ public class MainApp extends JFrame {
         goalPanel.repaint();
     }
 
+    @Override
+    public void dispose() {
+        autoSaveTimer.stop();
+        super.dispose();
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
@@ -1008,3 +1104,5 @@ public class MainApp extends JFrame {
         });
     }
 }
+
+
