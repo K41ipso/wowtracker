@@ -1,11 +1,14 @@
-package com.wowtracker;
+package com.wowtracker.service;
+
+import com.wowtracker.model.PersonalGoal;
+import com.wowtracker.model.User;
 
 import javax.swing.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-class GoalService implements Serializable {
+public class GoalService implements Serializable {
     private static final long serialVersionUID = 1L;
     private List<PersonalGoal> goals = new ArrayList<>();
 

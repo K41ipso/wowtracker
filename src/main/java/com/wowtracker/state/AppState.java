@@ -1,4 +1,9 @@
-package com.wowtracker;
+package com.wowtracker.state;
+
+import com.wowtracker.model.User;
+import com.wowtracker.service.AchievementService;
+import com.wowtracker.service.GoalService;
+import com.wowtracker.service.TaskService;
 
 import java.io.*;
 

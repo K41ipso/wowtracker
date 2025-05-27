@@ -1,11 +1,11 @@
-package com.wowtracker;
+package com.wowtracker.dialogs;
 
 import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDate;
 
 // Диалог для создания задачи
-class CreateTaskDialog extends JDialog {
+public class CreateTaskDialog extends JDialog {
     private JTextField titleField;
     private JTextArea descriptionArea;
     private JSpinner dateSpinner;

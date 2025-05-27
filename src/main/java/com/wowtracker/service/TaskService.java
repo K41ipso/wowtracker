@@ -1,4 +1,6 @@
-package com.wowtracker;
+package com.wowtracker.service;
+
+import com.wowtracker.model.Task;
 
 import javax.swing.*;
 import java.io.Serializable;
@@ -8,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 // Сервисы
-class TaskService implements Serializable {
+public class TaskService implements Serializable {
     private static final long serialVersionUID = 1L;
     private List<Task> tasks = new ArrayList<>();
 

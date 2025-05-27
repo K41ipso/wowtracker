@@ -1,4 +1,8 @@
-package com.wowtracker;
+package com.wowtracker.quest;
+
+import com.wowtracker.model.Achievement;
+import com.wowtracker.model.PersonalGoal;
+import com.wowtracker.model.Task;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -9,7 +13,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 // Генератор заданий
-class QuestGenerator {
+public class QuestGenerator {
     private ImageIcon[] taskIcons = {
             createResizedIcon("⚔️", 50, 50),
             createResizedIcon("📜", 50, 50),

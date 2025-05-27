@@ -1,5 +1,18 @@
 package com.wowtracker;
 
+import com.wowtracker.components.IconListPanel;
+import com.wowtracker.dialogs.CreateGoalDialog;
+import com.wowtracker.dialogs.CreateTaskDialog;
+import com.wowtracker.media.BackgroundMusicPlayer;
+import com.wowtracker.model.PersonalGoal;
+import com.wowtracker.model.Task;
+import com.wowtracker.model.User;
+import com.wowtracker.quest.QuestGenerator;
+import com.wowtracker.service.AchievementService;
+import com.wowtracker.service.GoalService;
+import com.wowtracker.service.TaskService;
+import com.wowtracker.state.AppState;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
@@ -13,7 +26,7 @@ import javax.sound.sampled.*;
 import java.io.File;
 import java.io.IOException;
 
-import static com.wowtracker.QuestGenerator.createResizedIcon;
+import static com.wowtracker.quest.QuestGenerator.createResizedIcon;
 
 
 // Основное окно приложения

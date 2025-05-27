@@ -1,10 +1,10 @@
-package com.wowtracker;
+package com.wowtracker.dialogs;
 
 import javax.swing.*;
 import java.awt.*;
 
 // Диалог для создания цели
-class CreateGoalDialog extends JDialog {
+public class CreateGoalDialog extends JDialog {
     private JTextField titleField;
     private JTextArea descriptionArea;
     private JSpinner costSpinner;

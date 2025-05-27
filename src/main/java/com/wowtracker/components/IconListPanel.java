@@ -1,4 +1,8 @@
-package com.wowtracker;
+package com.wowtracker.components;
+
+import com.wowtracker.model.Achievement;
+import com.wowtracker.model.PersonalGoal;
+import com.wowtracker.model.Task;
 
 import javax.swing.*;
 import java.awt.*;
@@ -6,7 +10,7 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 
 // Панель для отображения задач/ачивок/целей с иконками
-class IconListPanel extends JPanel {
+public class IconListPanel extends JPanel {
     public IconListPanel(List<?> items) {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(new Color(240, 240, 240));

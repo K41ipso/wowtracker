@@ -1,4 +1,4 @@
-package com.wowtracker;
+package com.wowtracker.components;
 
 import javax.swing.*;
 import java.awt.*;

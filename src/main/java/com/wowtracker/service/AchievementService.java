@@ -1,4 +1,7 @@
-package com.wowtracker;
+package com.wowtracker.service;
+
+import com.wowtracker.model.Achievement;
+import com.wowtracker.model.User;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -10,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-class AchievementService implements Serializable {
+public class AchievementService implements Serializable {
     private static final long serialVersionUID = 1L;
     private List<Achievement> achievements = new ArrayList<>();
 

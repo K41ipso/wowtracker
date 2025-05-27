@@ -1,11 +1,11 @@
-package com.wowtracker;
+package com.wowtracker.model;
 
 import javax.swing.*;
 import java.io.Serializable;
 import java.time.LocalDate;
 
 // Модели данных
-class Task implements Serializable {
+public class Task implements Serializable {
     private static final long serialVersionUID = 1L;
     private String id;
     private String title;

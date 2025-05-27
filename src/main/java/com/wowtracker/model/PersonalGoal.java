@@ -1,8 +1,8 @@
-package com.wowtracker;
+package com.wowtracker.model;
 
 import java.io.Serializable;
 
-class PersonalGoal implements Serializable {
+public class PersonalGoal implements Serializable {
     private static final long serialVersionUID = 1L;
     private String id;
     private String title;

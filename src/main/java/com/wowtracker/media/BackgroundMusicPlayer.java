@@ -1,4 +1,4 @@
-package com.wowtracker;
+package com.wowtracker.media;
 
 import javax.sound.sampled.*;
 import java.io.InputStream;

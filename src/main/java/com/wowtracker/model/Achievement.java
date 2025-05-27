@@ -1,9 +1,9 @@
-package com.wowtracker;
+package com.wowtracker.model;
 
 import javax.swing.*;
 import java.io.Serializable;
 
-class Achievement implements Serializable {
+public class Achievement implements Serializable {
     private static final long serialVersionUID = 1L;
     private String id;
     private String title;
